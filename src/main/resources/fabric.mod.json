@@ -1,0 +1,25 @@
+{
+	"schemaVersion": 1,
+	"id": "daycounter",
+	"version": "${version}",
+
+	"name": "Day Counter",
+	"description": "Displays the current Minecraft day on the HUD",
+	"authors": ["samfx"],
+	"license": "MIT",
+
+	"environment": "client",
+
+	"entrypoints": {
+		"client": [
+			"com.sam.daycounter.DayCounterClient"
+		]
+	},
+
+	"depends": {
+		"fabricloader": ">=0.14.21",
+		"minecraft": "1.20.1",
+		"java": ">=17",
+		"fabric-api": "*"
+	}
+}
