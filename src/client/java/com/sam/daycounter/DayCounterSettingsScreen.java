@@ -26,7 +26,7 @@ public class DayCounterSettingsScreen extends Screen {
         addToggle("HUD", DayCounterClient.CONFIG.enabled,
                 v -> DayCounterClient.CONFIG.enabled = v, cx, y);
 
-        // Label mode
+        // Label mode toggle
         addDrawableChild(ButtonWidget.builder(
                 Text.literal("Label Mode: " + DayCounterClient.CONFIG.labelMode),
                 b -> {
@@ -40,7 +40,7 @@ public class DayCounterSettingsScreen extends Screen {
                 }
         ).dimensions(cx - 100, y += 24, 200, 20).build());
 
-        // Custom label input
+        // Custom label field
         customField = new TextFieldWidget(
                 textRenderer,
                 cx - 100,
@@ -85,6 +85,40 @@ public class DayCounterSettingsScreen extends Screen {
         ).dimensions(cx - 50, y += 36, 100, 20).build());
     }
 
+    /* IMPORTANT: Override renderBackground to KILL blur in 1.21+ */
+
+    @Override
+    public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
+        // Solid dark background (no blur)
+        ctx.fill(0, 0, width, height, 0xC0101010);
+    }
+
+    @Override
+    public void render(DrawContext ctx, int mx, int my, float delta) {
+        int centerX = Math.round(width / 2f);
+
+        // Title
+        ctx.drawCenteredTextWithShadow(
+                textRenderer,
+                Text.literal("Day Counter"),
+                centerX,
+                20,
+                0xFFFFFF
+        );
+
+        // Author
+        ctx.drawCenteredTextWithShadow(
+                textRenderer,
+                Text.literal("by samfx"),
+                centerX,
+                32,
+                0xAAAAAA
+        );
+
+        super.render(ctx, mx, my, delta);
+        customField.render(ctx, mx, my, delta);
+    }
+
     private void addToggle(String label, boolean initial, ToggleConsumer consumer, int cx, int y) {
         addDrawableChild(ButtonWidget.builder(
                 Text.literal(label + ": " + initial),
@@ -95,32 +129,6 @@ public class DayCounterSettingsScreen extends Screen {
                     DayCounterConfig.save(DayCounterClient.CONFIG);
                 }
         ).dimensions(cx - 100, y, 200, 20).build());
-    }
-
-    @Override
-    public void render(DrawContext ctx, int mx, int my, float delta) {
-        renderBackground(ctx);
-
-        // Centered title
-        ctx.drawCenteredTextWithShadow(
-                textRenderer,
-                Text.literal("Day Counter"),
-                width / 2,
-                20,
-                0xFFFFFF
-        );
-
-        // Author subtext
-        ctx.drawCenteredTextWithShadow(
-                textRenderer,
-                Text.literal("by samfx"),
-                width / 2,
-                32,
-                0xAAAAAA
-        );
-
-        super.render(ctx, mx, my, delta);
-        customField.render(ctx, mx, my, delta);
     }
 
     private interface ToggleConsumer {
