@@ -18,7 +18,7 @@ for a minimal interface.
 
 ## Compatibility
 - Fabric Loader
-- Minecraft 1.20.1
+- Minecraft 1.21
 - Works with shaders (Iris, Sodium, etc.)
 - Compatible with resource packs and custom fonts
 

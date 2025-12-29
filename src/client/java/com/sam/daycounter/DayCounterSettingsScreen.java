@@ -99,7 +99,8 @@ public class DayCounterSettingsScreen extends Screen {
 
     @Override
     public void render(DrawContext ctx, int mx, int my, float delta) {
-        renderBackground(ctx);
+        // 1.21 requires full signature
+        renderBackground(ctx, mx, my, delta);
 
         // Centered title
         ctx.drawCenteredTextWithShadow(

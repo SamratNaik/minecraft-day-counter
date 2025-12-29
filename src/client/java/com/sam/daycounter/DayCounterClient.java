@@ -1,6 +1,7 @@
 package com.sam.daycounter;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
@@ -26,15 +27,21 @@ public class DayCounterClient implements ClientModInitializer {
                 )
         );
 
-        HudRenderCallback.EVENT.register(this::render);
+        // Handle key input on client tick (NOT in render)
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            while (openSettingsKey.wasPressed()) {
+                client.setScreen(new DayCounterSettingsScreen(client.currentScreen));
+            }
+        });
+
+        // HUD rendering (lambda avoids method reference issues)
+        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
+            render(drawContext);
+        });
     }
 
-    private void render(DrawContext context, float tickDelta) {
+    private void render(DrawContext context) {
         MinecraftClient client = MinecraftClient.getInstance();
-
-        while (openSettingsKey.wasPressed()) {
-            client.setScreen(new DayCounterSettingsScreen(client.currentScreen));
-        }
 
         if (!CONFIG.enabled || client.world == null) return;
 
@@ -45,7 +52,7 @@ public class DayCounterClient implements ClientModInitializer {
         String label = null;
         int labelColor = 0xFFFFFF;
 
-        if (CONFIG.labelMode.equals("AUTO")) {
+        if ("AUTO".equals(CONFIG.labelMode)) {
             if (client.world.getLevelProperties().isHardcore()) {
                 label = "HARDCORE";
                 labelColor = 0xFF5555;
@@ -62,11 +69,11 @@ public class DayCounterClient implements ClientModInitializer {
                     labelColor = 0x55FF55;
                 }
             }
-        } else if (CONFIG.labelMode.equals("CUSTOM") && !CONFIG.customLabel.isBlank()) {
+        } else if ("CUSTOM".equals(CONFIG.labelMode) && !CONFIG.customLabel.isBlank()) {
             label = CONFIG.customLabel;
             labelColor = 0x55FFFF;
         }
-        // OFF → label stays null
+        // OFF → label remains null
 
         int x = 10;
         int y = 10;
@@ -75,12 +82,14 @@ public class DayCounterClient implements ClientModInitializer {
         context.getMatrices().push();
         context.getMatrices().scale(CONFIG.scale, CONFIG.scale, 1.0f);
 
+        int lineHeight = client.textRenderer.fontHeight;
+
         int width = client.textRenderer.getWidth(dayText);
-        int height = 10;
+        int height = lineHeight;
 
         if (label != null) {
             width = Math.max(width, client.textRenderer.getWidth(label));
-            height += 10;
+            height += lineHeight;
         }
 
         if (CONFIG.showBackground) {
@@ -103,7 +112,7 @@ public class DayCounterClient implements ClientModInitializer {
                     drawY,
                     labelColor
             );
-            drawY += 10;
+            drawY += lineHeight;
         }
 
         context.drawTextWithShadow(
