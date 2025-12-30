@@ -27,62 +27,53 @@ public class DayCounterClient implements ClientModInitializer {
                 )
         );
 
-        // Handle key input on client tick (NOT in render)
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openSettingsKey.wasPressed()) {
                 client.setScreen(new DayCounterSettingsScreen(client.currentScreen));
             }
         });
 
-        // HUD rendering (lambda avoids method reference issues)
-        HudRenderCallback.EVENT.register((drawContext, tickDelta) -> {
-            render(drawContext);
-        });
+        HudRenderCallback.EVENT.register((ctx, tickDelta) -> renderHud(ctx));
     }
 
-    private void render(DrawContext context) {
+    private static void renderHud(DrawContext ctx) {
         MinecraftClient client = MinecraftClient.getInstance();
-
         if (!CONFIG.enabled || client.world == null) return;
 
         long day = client.world.getTimeOfDay() / 24000L + 1;
         String dayText = "Day " + day;
 
-        // ===== LABEL RESOLUTION =====
         String label = null;
-        int labelColor = 0xFFFFFF;
+        int labelColor = 0xFFFFFFFF; // default white
+
 
         if ("AUTO".equals(CONFIG.labelMode)) {
             if (client.world.getLevelProperties().isHardcore()) {
                 label = "HARDCORE";
-                labelColor = 0xFF5555;
+                labelColor = 0xFFFF5555;
+            } else if (client.interactionManager != null &&
+                    client.interactionManager.getCurrentGameMode() == GameMode.CREATIVE) {
+                label = "CREATIVE";
+                labelColor = 0xFFFFFF55;
             } else {
-                GameMode gm = client.interactionManager != null
-                        ? client.interactionManager.getCurrentGameMode()
-                        : null;
-
-                if (gm == GameMode.CREATIVE) {
-                    label = "CREATIVE";
-                    labelColor = 0xFFFF55;
-                } else {
-                    label = "SURVIVAL";
-                    labelColor = 0x55FF55;
-                }
+                label = "SURVIVAL";
+                labelColor = 0xFF55FF55;
             }
         } else if ("CUSTOM".equals(CONFIG.labelMode) && !CONFIG.customLabel.isBlank()) {
             label = CONFIG.customLabel;
-            labelColor = 0x55FFFF;
+            labelColor = 0xFF55FFFF;
         }
-        // OFF → label remains null
 
-        int x = 10;
-        int y = 10;
-        int padding = 4;
+        float s = CONFIG.scale;
 
-        context.getMatrices().push();
-        context.getMatrices().scale(CONFIG.scale, CONFIG.scale, 1.0f);
+        int x = Math.round(10 * s);
+        int y = Math.round(10 * s);
+        int padding = Math.round(4 * s);
+        int spacing = Math.round(2 * s);
 
         int lineHeight = client.textRenderer.fontHeight;
+
+
 
         int width = client.textRenderer.getWidth(dayText);
         int height = lineHeight;
@@ -93,7 +84,7 @@ public class DayCounterClient implements ClientModInitializer {
         }
 
         if (CONFIG.showBackground) {
-            context.fill(
+            ctx.fill(
                     x - padding,
                     y - padding,
                     x + width + padding,
@@ -105,24 +96,26 @@ public class DayCounterClient implements ClientModInitializer {
         int drawY = y;
 
         if (label != null) {
-            context.drawTextWithShadow(
+            ctx.drawText(
                     client.textRenderer,
                     label,
                     x,
                     drawY,
-                    labelColor
+                    labelColor,
+                    false
             );
-            drawY += lineHeight;
+
+            drawY += lineHeight+1;
         }
 
-        context.drawTextWithShadow(
+        ctx.drawText(
                 client.textRenderer,
                 dayText,
                 x,
                 drawY,
-                0xFFFFFF
+                0xFFFFFFFF,
+                false
         );
 
-        context.getMatrices().pop();
     }
 }

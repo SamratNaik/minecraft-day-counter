@@ -18,12 +18,12 @@ for a minimal interface.
 
 ## Compatibility
 - Fabric Loader
-- Minecraft 1.21
+- Minecraft 1.21.6
 - Works with shaders (Iris, Sodium, etc.)
 - Compatible with resource packs and custom fonts
 
 ## Installation
-1. Install Fabric Loader for Minecraft 1.20.1
+1. Install Fabric Loader for Minecraft 1.20.6
 2. Install Fabric API
 3. Place the mod JAR into the `mods` folder
 4. Launch the game
